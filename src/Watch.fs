@@ -5,16 +5,20 @@ open System.IO
 open Microsoft.FSharp.Control
 open FSharp.Control.Reactive
 
+module Watcher = 
 
-module FsWatch = 
-    
     type FileSystemWatcher with
-        member this.Replaced = 
-            this.Renamed 
-            |> Observable.map (fun e -> 
-                new FileSystemEventArgs(e.ChangeType, Path.GetDirectoryName e.FullPath, e.Name))
+    member this.Replaced = 
+        this.Renamed 
+        |> Observable.map (fun e -> 
+            new FileSystemEventArgs(e.ChangeType, Path.GetDirectoryName e.FullPath, e.Name))    
+
+open Watcher
+
+type FsWatch() =     
     
-    let private watchForChanges file = 
+    [<CompiledName("ObserveChanges")>]
+    static member watchForChanges file = 
         let root = Path.GetDirectoryName (file : string)        
         if not (File.Exists file) then
             failwithf "'%s' is an invalid filename" file
@@ -32,17 +36,19 @@ module FsWatch =
                 |> Observable.map (fun _ -> ())        
             )        
 
-    let watchFile file onEvaluation =
+    [<CompiledName("WatchFile")>]
+    static member watchFile (file, ?onBeforeEvaluation, ?onAfterEvaluation) =
         let ctx = Worksheet.createContext file
         let initstate = { Worksheet.initState with onEvaluation = onEvaluation }
         let state = ref initstate            
         let compute () = Observable.ofAsync <| async {            
+            do! Async.Sleep 100
             let! next = Worksheet.evalFile file !state ctx
             state := next
         }
 
         let subscription = 
-            watchForChanges file     
+            FsWatch.watchForChanges file     
             |> Observable.startWith [()]
             |> Observable.map compute
             |> Observable.switch
