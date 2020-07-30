@@ -1,4 +1,4 @@
-﻿namespace Worksheet.Core
+﻿namespace FsWorksheet.Core
 
 open System
 open System.IO

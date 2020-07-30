@@ -10,9 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Extension.fs" />
+    <Compile Include="Range.fs" />
     <Compile Include="AstTraversal.fs" />
     <Compile Include="Writer.fs" />
     <Compile Include="EvalContext.fs" />
+    <Compile Include="Worksheet.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
