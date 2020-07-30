@@ -50,7 +50,16 @@ module Worksheet =
             member this.CompareTo(cell) = this.eqHash.CompareTo(cell.eqHash)
 
     type Cells = System.Collections.Generic.HashSet<Cell>
-    type State = { source: Source; cells: Cells; session: int32; onEvaluation: (string * Cell) -> unit }    
+    type EvalCallback = Cell -> unit
+
+    type State =
+        { source: Source
+          cells: Cells
+          session: int32
+          onAfterEvaluation: EvalCallback
+          onBeforeEvaluation: EvalCallback 
+        }
+
     type SymbolRangeTree = IRangeTree<pos, FSharpSymbolUse>
 
     type CheckedSource = { 
@@ -94,7 +103,7 @@ module Worksheet =
     let createContext filename =
         new FsWorksheet.Core.EvalContext (filename = filename)
 
-    let initState = { source = createSource ""; cells = new Cells(); session = 0; onEvaluation = ignore }
+    let initState = { source = createSource ""; cells = new Cells(); session = 0; onAfterEvaluation = ignore; onBeforeEvaluation = ignore; }
     
     // use spans to avoid any allocation
     // https://stackoverflow.com/questions/51864673/c-sharp-readonlyspanchar-vs-substring-for-string-dissection
@@ -127,19 +136,6 @@ module Worksheet =
             
         hash.ToHashCode()
     
-    let printCellToConsole (src, cell : Cell) =
-        Console.ForegroundColor <- ConsoleColor.Gray
-        printfn "%s" (String.replicate Console.WindowWidth "─")
-        Console.ForegroundColor <- ConsoleColor.DarkGray
-        printfn "%s" src 
-        let runs =
-            match cell.result with
-            | Evaled runs 
-            | Faulted runs -> runs
-            | _ -> [||]
-
-        RunWriter.PrintToConsole runs
-
     let computeDiff (old: State) (cur: CheckedSource) = 
         let source, res = cur.source, cur.parseResults
         let decls = AstTraversal.declarationsFor res
@@ -198,7 +194,11 @@ module Worksheet =
         for cell in state.cells ->
             if cell.result = NonEval then
                     async {
-                    let src = cell.ToSource(state.source)
+                    do! ctx.ReleaseStreams()
+
+                    let src = cell.ToSource()
+                    state.onBeforeEvaluation cell
+                    
                     let! result = ctx.Eval(src)
 
                     let runResult = 
@@ -209,7 +209,7 @@ module Worksheet =
 
                     let cell = { cell with result = runResult } 
 
-                    state.onEvaluation (src, cell)
+                    state.onAfterEvaluation cell
                     return cell
                 }
             else async { 

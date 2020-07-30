@@ -39,7 +39,11 @@ type FsWatch() =
     [<CompiledName("WatchFile")>]
     static member watchFile (file, ?onBeforeEvaluation, ?onAfterEvaluation) =
         let ctx = Worksheet.createContext file
-        let initstate = { Worksheet.initState with onEvaluation = onEvaluation }
+        let initstate = { 
+            Worksheet.initState with 
+                onAfterEvaluation = defaultArg onAfterEvaluation ignore
+                onBeforeEvaluation = defaultArg onBeforeEvaluation ignore
+        }
         let state = ref initstate            
         let compute () = Observable.ofAsync <| async {            
             do! Async.Sleep 100

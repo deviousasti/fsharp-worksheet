@@ -80,13 +80,13 @@ type EvalContext (?config : FsiEvaluationSessionHostConfig, ?filename : string) 
 
               Console.SetOut stdOut
               Console.SetError stdErr
-        
-        
         }    
-
-    let checkSource source =
-        fsiSession.ParseAndCheckInteraction (source)
-
+    
+    member _.ReleaseStreams () = async {
+        do! Console.Out.FlushAsync() |> Async.AwaitTask
+        Console.SetOut stdOut
+        Console.SetError stdErr
+    }
     member _.Eval (text) = evalInteraction text
     member _.Check (text) = checkInteraction text
     member _.Check (text, filename) = checkAsNewProject filename text
