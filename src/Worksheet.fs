@@ -227,3 +227,26 @@ module Worksheet =
         return! evalState diff ctx
     }
 
+
+module Print = 
+    
+    open Worksheet
+
+    let resultToConsole (cell : Cell) =
+        let runs =
+            match cell.result with
+            | Evaled runs 
+            | Faulted runs -> runs
+            | _ -> [||]
+
+        RunWriter.PrintToConsole runs
+
+    let sourceToConsole (cell : Cell) =
+        Console.ForegroundColor <- ConsoleColor.Gray
+        printfn "%s" (String.replicate Console.WindowWidth "─")
+        Console.ForegroundColor <- ConsoleColor.DarkGray
+        printfn "%s" (cell.ToSource())
+
+    let cellToConsole cell =        
+        sourceToConsole cell
+        resultToConsole cell
