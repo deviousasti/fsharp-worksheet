@@ -32,10 +32,12 @@ module Worksheet =
         result: RunResult; 
         eqHash: int32; 
         session: int32;
+        source: Source;
     } with
         member this.range = this.ast.Range
         member this.ToSource(source) =
             AstTraversal.astToText source this.ast this.scope
+        member this.ToSource() = this.ToSource(this.source)           
 
         override this.GetHashCode() = this.eqHash
         override this.Equals(other) = 
@@ -154,6 +156,7 @@ module Worksheet =
                     result = NonEval 
                     eqHash = computeHash source loc
                     session = session
+                    source = source
                 }
 
                 match old.cells.TryGetValue newcell with
