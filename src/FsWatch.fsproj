@@ -10,15 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="AstTraversal.fs" />
     <Compile Include="Writer.fs" />
     <Compile Include="EvalContext.fs" />
-    <None Include="Scratch.fsx" />
-    <None Include="Program.fsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Program2.fsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <Compile Include="Program.fs" />
   </ItemGroup>
 
