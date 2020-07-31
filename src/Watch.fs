@@ -35,31 +35,38 @@ type FsWatch() =
                 |> Observable.throttle (TimeSpan.FromMilliseconds 100.0)
                 |> Observable.map (fun _ -> ())        
             )        
-
-    [<CompiledName("WatchFile")>]
-    static member watchFile (file, ?onBeforeEvaluation, ?onAfterEvaluation) =
-        let ctx = Worksheet.createContext file
+    
+    [<CompiledName("Watch")>]
+    static member watch (observable, onBeforeEvaluation, onAfterEvaluation) =
+        let ctx = Worksheet.createContext ()
         let initstate = { 
             Worksheet.initState with 
                 onAfterEvaluation = defaultArg onAfterEvaluation ignore
                 onBeforeEvaluation = defaultArg onBeforeEvaluation ignore
         }
         let state = ref initstate            
-        let compute () = Observable.ofAsync <| async {            
-            do! Async.Sleep 100
-            let! next = Worksheet.evalFile file !state ctx
+        let compute source = Observable.ofAsync <| async {            
+            let! next = Worksheet.evalSource source !state ctx
             state := next
         }
 
         let subscription = 
-            FsWatch.watchForChanges file     
-            |> Observable.startWith [()]
+            observable
             |> Observable.map compute
             |> Observable.switch
             |> Observable.retry
             |> Observable.subscribe ignore
 
         Disposable.compose ctx subscription
+
+    [<CompiledName("WatchFile")>]
+    static member watchFile (file, ?onBeforeEvaluation, ?onAfterEvaluation) =
+        let sourceChanges = 
+            FsWatch.watchForChanges file
+            |> Observable.startWith [()]
+            |> Observable.flatmapTask (fun () -> File.ReadAllTextAsync(file))
+        
+        FsWatch.watch(sourceChanges, onBeforeEvaluation, onAfterEvaluation)
     
 
 

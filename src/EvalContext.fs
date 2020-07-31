@@ -12,7 +12,7 @@ open FSharp.Compiler.Text
 
 type range = Range.range
 
-type EvalContext (?config : FsiEvaluationSessionHostConfig, ?filename : string) =                    
+type EvalContext (?config : FsiEvaluationSessionHostConfig) =                    
 
     let inStream = new StringReader("")
     let outStream = new RunWriter() // Console.Out  // new StringWriter(sbOut)
@@ -28,8 +28,6 @@ type EvalContext (?config : FsiEvaluationSessionHostConfig, ?filename : string) 
     let allArgs = Array.append argv [|"--noninteractive"; "--nologo"; "--fsi-server:fswatch" |]       
 
     let fsiSession = FsiEvaluationSession.Create(fsiConfig, allArgs, inStream, outStream, errStream)
-    
-    let sourceFile = defaultArg filename "stdin.fsx"   
 
     let checkAsNewProject sourceFile (source : ISourceText) =         
         async {                 
@@ -50,8 +48,7 @@ type EvalContext (?config : FsiEvaluationSessionHostConfig, ?filename : string) 
     let checkInteraction source = async {      
        let! (parseResults, checkResults, _) = fsiSession.ParseAndCheckInteraction source
        return parseResults, checkResults
-    }
-        
+    }        
 
     let sanitise obj =
         System.Text.RegularExpressions.Regex.Replace(obj.ToString(), @"FSI_\d\d\d\d\.?", "") + outStream.NewLine

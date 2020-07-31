@@ -100,8 +100,8 @@ module Worksheet =
         }                              
     }
 
-    let createContext filename =
-        new FsWorksheet.Core.EvalContext (filename = filename)
+    let createContext () =
+        new FsWorksheet.Core.EvalContext ()
 
     let initState = { source = createSource ""; cells = new Cells(); session = 0; onAfterEvaluation = ignore; onBeforeEvaluation = ignore; }
     
@@ -222,13 +222,18 @@ module Worksheet =
         return { state with cells = Cells cells }
     }
 
-    let evalFile file (state: State) (ctx: EvalContext) = async {
-        let! token = Async.CancellationToken
-        let! source = File.ReadAllTextAsync (file, token) |> Async.AwaitTask
+    let evalSource source (state: State) (ctx: EvalContext) = async {
         let! checkedSource = checkSource source None ctx
         let diff = computeDiff state checkedSource
         return! evalState diff ctx
     }
+
+    let evalFile file (state: State) (ctx: EvalContext) = async {
+        let! token = Async.CancellationToken
+        let! source = File.ReadAllTextAsync (file, token) |> Async.AwaitTask
+        return! evalSource source state ctx
+    }
+        
 
 
 module Print = 
