@@ -36,11 +36,10 @@ module AstTraversal =
         source.GetLineString(range.StartLine - 1).AsSpan(0, range.StartColumn).IsWhiteSpace()
 
     let rangeToText (source: FSharp.Compiler.Text.ISourceText) (range: range) = 
-        if range.StartLine = range.EndLine then
-            if isLeadingWhiteSpace source range then
-                source.GetLineString(range.StartLine - 1)
-            else
-                source.GetLineString(range.StartLine - 1).Substring(range.StartColumn, range.EndColumn - range.StartColumn)
+        if range.StartLine = range.EndLine then            
+            let startCol = if isLeadingWhiteSpace source range then 0 else range.StartColumn
+            let length = range.EndColumn - startCol
+            source.GetLineString(range.StartLine - 1).Substring(startCol, length)
         else
             let sb = new StringBuilder()            
 
