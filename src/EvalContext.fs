@@ -87,6 +87,7 @@ type EvalContext (?config : FsiEvaluationSessionHostConfig) =
     member _.Eval (text) = evalInteraction text
     member _.Check (text) = checkInteraction text
     member _.Check (text, filename) = checkAsNewProject filename text
+    member _.Interrupt () = fsiSession.Interrupt()
 
     interface IDisposable with
         override _.Dispose() = 

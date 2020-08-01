@@ -222,6 +222,24 @@ module Worksheet =
         return { state with cells = Cells cells }
     }
 
+    let forceCells (state: State) condition = 
+        let newcells = 
+            seq { 
+                for cell in state.cells do
+                    if condition cell then
+                        { cell with result = NonEval }
+                    else
+                        cell
+            }
+
+        evalState { state with cells = Cells newcells }     
+
+    let forceCellAt pos (state: State) = 
+        forceCells state (fun cell -> Range.rangeContainsPos cell.range pos)
+
+    let forceAllCellsAt range (state: State) = 
+        forceCells state (fun cell -> Range.intersects cell.range range)
+
     let evalSource source (state: State) (ctx: EvalContext) = async {
         let! checkedSource = checkSource source None ctx
         let diff = computeDiff state checkedSource
@@ -233,6 +251,8 @@ module Worksheet =
         let! source = File.ReadAllTextAsync (file, token) |> Async.AwaitTask
         return! evalSource source state ctx
     }
+    
+
         
 
 
@@ -254,6 +274,7 @@ module Print =
         printfn "%s" (String.replicate Console.WindowWidth "─")
         Console.ForegroundColor <- ConsoleColor.DarkGray
         printfn "%s" (cell.ToSource())
+        Console.ResetColor()
 
     let cellToConsole cell =        
         sourceToConsole cell

@@ -66,11 +66,11 @@ module AstTraversal =
             let root = Path.GetDirectoryName range.FileName
             let fullPath = if Path.IsPathRooted filename then filename else Path.Combine (root, filename)
             sprintf "#load \"%s\"" fullPath
-        | decl -> 
-            let text = rangeToText source decl.Range
-            (scope 
+        | decl ->             
+            scope 
             |> Seq.mapi(fun i id -> sprintf "%smodule %s = \n" (String.replicate i "    ") id.idText) 
-            |> String.concat "")                
-                + text
+            |> Seq.append (seq { rangeToText source decl.Range })
+            |> String.concat ""
+                
             
         
