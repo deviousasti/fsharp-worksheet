@@ -23,6 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="DT.fs" />
     <Compile Include="Extension.fs" />
     <Compile Include="Range.fs" />
     <Compile Include="AstTraversal.fs" />
