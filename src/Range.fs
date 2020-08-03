@@ -1,6 +1,8 @@
 ﻿namespace FSharp.Compiler
+open FsWorksheet
 
 type range = Range.range
+type pos = Range.pos
 
 module Range =
     let intersects (a : range) (b: range) =
@@ -17,5 +19,6 @@ module Range =
         original
         #endif    
 
-
+    let toVsPos (pos: pos) = { Line = pos.Line - 1; Col = pos.Column }
+    let toVsRange (range: range) = { From = toVsPos range.Start; To = toVsPos range.End }
 

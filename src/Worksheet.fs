@@ -38,7 +38,11 @@ module Worksheet =
         member this.ToSource(source) =
             AstTraversal.astToText source this.ast this.scope
         member this.ToSource() = this.ToSource(this.source)           
-
+        member this.runs = 
+            match this.result with
+            | Evaled runs 
+            | Faulted runs -> runs
+            | _ -> [||]
         override this.GetHashCode() = this.eqHash
         override this.Equals(other) = 
             match other with
@@ -48,7 +52,9 @@ module Worksheet =
             member this.Equals(cell) = this.eqHash = cell.eqHash
         interface IComparable<Cell> with
             member this.CompareTo(cell) = this.eqHash.CompareTo(cell.eqHash)
-
+    
+    // mutable hashset is 2x faster than immutable set
+    // we don't actually use the mutable behavior of hashset
     type Cells = System.Collections.Generic.HashSet<Cell>
     type EvalCallback = Cell -> unit
 
@@ -60,6 +66,7 @@ module Worksheet =
           onBeforeEvaluation: EvalCallback 
         }
 
+    type StateChangedCallback = (State * State) -> unit
     type SymbolRangeTree = IRangeTree<pos, FSharpSymbolUse>
 
     type CheckedSource = { 
@@ -163,6 +170,9 @@ module Worksheet =
         }
         
         // compute forward dependency DAG
+        // this is linear O(n), and in general 
+        // faster than computing the dependents of each symbols
+        // and doing a distinctBy
         let cells = seq {
             let depTree = new RangeTree<_, _>(Range.posOrder)
 
@@ -212,9 +222,8 @@ module Worksheet =
                     state.onAfterEvaluation cell
                     return cell
                 }
-            else async { 
-                    return cell
-            }
+            else 
+                async.Return cell
     }
 
     let evalState (state: State) (ctx: EvalContext) = async {
@@ -261,13 +270,7 @@ module Print =
     open Worksheet
 
     let resultToConsole (cell : Cell) =
-        let runs =
-            match cell.result with
-            | Evaled runs 
-            | Faulted runs -> runs
-            | _ -> [||]
-
-        RunWriter.PrintToConsole runs
+        RunWriter.PrintToConsole cell.runs
 
     let sourceToConsole (cell : Cell) =
         Console.ForegroundColor <- ConsoleColor.Gray

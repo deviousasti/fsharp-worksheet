@@ -8,36 +8,32 @@ open Worksheet
 
 module FsWatch = 
 
-    type WorksheetCommand =
-    | Compute of source: string
-    | ForceEvalCellAt of line : int * col : int
-    | ForceEvalRange of startline : int * startcol : int * endline : int * endcol : int
-    | Interrupt
-    | Exit
 
     type WatchFileConfig =
         { filename: string
           onBeforeEvaluation: Worksheet.EvalCallback
           onAfterEvaluation: Worksheet.EvalCallback
+          onStateChanged: Worksheet.StateChangedCallback
         }
+    
+    let internal toPos (pos: vspos) = Range.mkPos pos.Line pos.Col
 
     [<CompiledName("Eval")>]
     let eval command state ctx = 
         match command with 
         | Compute source -> 
             Worksheet.evalSource source state ctx
-        | ForceEvalCellAt (line, col) -> 
-            let pos = Range.mkPos line col
+        | ForceEvalCellAt cursor ->             
+            let pos = toPos cursor
             Worksheet.forceCellAt pos state ctx
-        | ForceEvalRange (startline, startcol, endline, endcol) -> 
-            let range = Range.mkRange "" (Range.mkPos startcol startline) (Range.mkPos endcol endline)
+        | ForceEvalRange range -> 
+            let range = Range.mkRange "" (toPos range.From) (toPos range.To)
             Worksheet.forceAllCellsAt range state ctx
         | Interrupt ->
             ctx.Interrupt()
-            async { return state }
-        | Exit -> 
-            (ctx :> IDisposable).Dispose()
-            exit 0
+            async.Return state
+        | Noop | Exit ->
+            async.Return state
         
     [<CompiledName("Watch")>]
     let watch (config: WatchFileConfig, observable) =

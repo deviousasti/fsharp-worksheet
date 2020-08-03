@@ -12,6 +12,7 @@ let main argv =
             filename = file
             onBeforeEvaluation = Print.sourceToConsole 
             onAfterEvaluation = Print.resultToConsole 
+            onStateChanged = ignore
         }
         
     Console.ReadLine() |> ignore
