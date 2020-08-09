@@ -62,11 +62,27 @@ module Worksheet =
         { source: Source
           cells: Cells
           session: int32
-          onAfterEvaluation: EvalCallback
-          onBeforeEvaluation: EvalCallback 
         }
 
     type StateChangedCallback = (State * State) -> unit
+
+    type Events = {
+        onAfterEval: EvalCallback
+        onBeforeEval: EvalCallback 
+        onStaging: StateChangedCallback;
+        onCommit: StateChangedCallback;
+    } with  
+        static member none = { 
+            onAfterEval = ignore
+            onBeforeEval = ignore
+            onStaging = ignore
+            onCommit = ignore 
+        }
+    
+    type Context = { ctx: EvalContext; events: Events } with
+        interface IDisposable with
+            member this.Dispose() = Disposable.dispose this.ctx
+
     type SymbolRangeTree = IRangeTree<pos, FSharpSymbolUse>
 
     type CheckedSource = { 
@@ -82,7 +98,7 @@ module Worksheet =
         not usage.IsFromDefinition &&
         not usage.IsFromType
 
-    let checkSource text filename (ctx: EvalContext) = async {
+    let checkSource text filename ({ ctx = ctx}) = async {
         let source = createSource text
         let! (parseResults, checkResults) = 
             match filename with
@@ -110,7 +126,7 @@ module Worksheet =
     let createContext () =
         new FsWorksheet.Core.EvalContext ()
 
-    let initState = { source = createSource ""; cells = new Cells(); session = 0; onAfterEvaluation = ignore; onBeforeEvaluation = ignore; }
+    let initState = { source = createSource ""; cells = new Cells(); session = 0; }
     
     // use spans to avoid any allocation
     // https://stackoverflow.com/questions/51864673/c-sharp-readonlyspanchar-vs-substring-for-string-dissection
@@ -200,14 +216,14 @@ module Worksheet =
         
         { old with cells = Cells cells; source = cur.source; session = session }
 
-    let evalCells (state: State) (ctx: EvalContext) = seq {         
+    let evalCells (state: State) ({ ctx = ctx; events = events }) = seq {         
         for cell in state.cells ->
             if cell.result = NonEval then
                     async {
                     do! ctx.ReleaseStreams()
 
                     let src = cell.ToSource()
-                    state.onBeforeEvaluation cell
+                    events.onBeforeEval cell
                     
                     let! result = ctx.Eval(src)
 
@@ -219,14 +235,14 @@ module Worksheet =
 
                     let cell = { cell with result = runResult } 
 
-                    state.onAfterEvaluation cell
+                    events.onAfterEval cell
                     return cell
                 }
             else 
                 async.Return cell
     }
 
-    let evalState (state: State) (ctx: EvalContext) = async {
+    let evalState (state: State) (ctx: Context) = async {
         let! cells = evalCells state ctx |> Async.Sequential
         return { state with cells = Cells cells }
     }
@@ -249,13 +265,13 @@ module Worksheet =
     let forceAllCellsAt range (state: State) = 
         forceCells state (fun cell -> Range.intersects cell.range range)
 
-    let evalSource source (state: State) (ctx: EvalContext) = async {
+    let evalSource source (state: State) (ctx: Context) = async {
         let! checkedSource = checkSource source None ctx
         let diff = computeDiff state checkedSource
         return! evalState diff ctx
     }
 
-    let evalFile file (state: State) (ctx: EvalContext) = async {
+    let evalFile file (state: State) (ctx: Context) = async {
         let! token = Async.CancellationToken
         let! source = File.ReadAllTextAsync (file, token) |> Async.AwaitTask
         return! evalSource source state ctx

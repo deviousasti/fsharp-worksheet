@@ -5,17 +5,13 @@ open System.IO
 open FSharp.Control.Reactive
 open FSharp.Compiler
 open Worksheet
+open API
 
 module FsWatch = 
 
 
-    type WatchFileConfig =
-        { filename: string
-          onBeforeEvaluation: Worksheet.EvalCallback
-          onAfterEvaluation: Worksheet.EvalCallback
-          onStateChanged: Worksheet.StateChangedCallback
-        }
-    
+    type WatchConfig = { filename: string; events: Events }
+
     let internal toPos (pos: vspos) = Range.mkPos pos.Line pos.Col
 
     [<CompiledName("Eval")>]
@@ -30,23 +26,18 @@ module FsWatch =
             let range = Range.mkRange "" (toPos range.From) (toPos range.To)
             Worksheet.forceAllCellsAt range state ctx
         | Interrupt ->
-            ctx.Interrupt()
+            ctx.ctx.Interrupt()
             async.Return state
-        | Noop | Exit ->
+        | Noop | Exit | Ack ->
             async.Return state
         
     [<CompiledName("Watch")>]
-    let watch (config: WatchFileConfig, observable) =
-        let ctx = Worksheet.createContext ()
-        let initstate = { 
-            Worksheet.initState with 
-                onBeforeEvaluation = config.onBeforeEvaluation
-                onAfterEvaluation = config.onAfterEvaluation
-        }
-        let state = ref initstate            
+    let watch (config: WatchConfig, observable) =
+        let evctx = { ctx = Worksheet.createContext (); events = config.events }
+        let state = ref Worksheet.initState
         let compute command = Observable.ofAsync <| async {            
             let current = !state
-            let! next = eval command current ctx
+            let! next = eval command current evctx            
             state := next
         }
 
@@ -57,7 +48,7 @@ module FsWatch =
             |> Observable.retry
             |> Observable.subscribe ignore
 
-        Disposable.compose ctx subscription
+        Disposable.compose evctx subscription
 
     
     type FileSystemWatcher with
@@ -74,7 +65,7 @@ module FsWatch =
        
     [<CompiledName("ObserveChanges")>]
     let watchForChanges (file : string) = 
-        let root = Path.GetDirectoryName (file : string)        
+        let root = Path.GetDirectoryName file     
         if not (File.Exists file) then
             failwithf "'%s' is an invalid filename" file
 
@@ -84,7 +75,8 @@ module FsWatch =
                 // start watch
                 fswatcher.EnableRaisingEvents <- true
 
-                Observable.merge fswatcher.Changed fswatcher.Created  
+                fswatcher.Changed
+                |> Observable.merge fswatcher.Created  
                 |> Observable.merge fswatcher.Replaced
                 |> Observable.filter (fun e -> e.FullPath = file) 
                 |> Observable.throttle (TimeSpan.FromMilliseconds 100.0)
@@ -93,7 +85,7 @@ module FsWatch =
     
 
     [<CompiledName("WatchFile")>]
-    let watchFile (config: WatchFileConfig) =
+    let watchFile (config: WatchConfig) =
         let sourceChanges = 
             watchForChanges config.filename
             |> Observable.startWith [()]
