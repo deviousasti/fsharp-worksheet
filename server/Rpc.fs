@@ -1,4 +1,4 @@
-﻿namespace Server
+﻿namespace Remoting
 
 open MBrace.FsPickler
 open SharedMemory

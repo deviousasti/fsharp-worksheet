@@ -1,6 +1,7 @@
 ﻿open System
-open Server
+open Remoting
 open FsWorksheet
+open FsWorksheet.API
 open FsWatch
 open FSharp.Control.Reactive
 open FSharp.Compiler
@@ -13,17 +14,19 @@ let main argv =
 
     let config post = { 
         filename = file
-        onBeforeEvaluation = fun cell -> 
-            post <| PreEval (Range.toVsRange cell.range, cell.eqHash) 
-        onAfterEvaluation = fun cell -> 
-            post <| PostEval (Range.toVsRange cell.range, cell.eqHash, cell.runs)
-        onStateChanged = fun (_, state) -> 
-            post <| CellsChanged (
-                state.cells 
-                |> Seq.map(fun cell -> { hash = cell.eqHash; range = Range.toVsRange cell.range })
-                |> Seq.toArray
-            )
-            
+        events = {
+            onBeforeEval = fun cell -> 
+                post <| PreEval ({ range = Range.toVsRange cell.range; eqHash = cell.eqHash }, cell.ToSource()) 
+            onAfterEval = fun cell -> 
+                post <| PostEval ({ range = Range.toVsRange cell.range; eqHash = cell.eqHash }, cell.runs)
+            onStaging = fun (_, state) -> 
+                post <| ChangesStaged (
+                    state.cells 
+                    |> Seq.map(fun cell -> { eqHash = cell.eqHash; range = Range.toVsRange cell.range })
+                    |> Seq.toArray
+                )
+            onCommit = ignore   
+        }
     }
 
     let post message = Async.Start <| async { 
