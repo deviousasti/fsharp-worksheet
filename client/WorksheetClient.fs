@@ -11,18 +11,26 @@ type ChangeEvents =
 | Removed       = 3
 | Evaluating    = 4
 | Evaluated     = 5
+| Committed     = 6
 
-type Worksheet (name, file) =
-    let queue = new BlockingCollection<_>()
+type WorksheetModel (name, file, threadModel: Action<Async<unit>>) =
+    let queue = new ConcurrentQueue<_>()
     let state = ref (vscells ())
-    //let ranges = new RangeTree<vspos, CellView>(API.posComparer)
     let events = new Event<_>()
-    let raiseWith (kind : ChangeEvents) (cell : vscell) runs = events.Trigger struct (kind, cell, runs)
+    let raiseWith (kind : ChangeEvents) (cell : vscell) runs = 
+        //lock events (fun () -> events.Trigger struct (kind, cell, runs))
+        threadModel.Invoke <| async { 
+            do events.Trigger struct (kind, cell, runs)
+        }
     let raise kind cell = raiseWith kind cell Array.empty
 
     let patchCells (cells : vscell array) = 
         let prev = !state 
         let next = cells |> vscells
+        
+        for oldcell in prev do
+            if not (next.Contains oldcell) then do
+                raise ChangeEvents.Removed oldcell
 
         for newcell in cells do
             match prev.TryGetValue(newcell) with
@@ -32,23 +40,16 @@ type Worksheet (name, file) =
                 raise ChangeEvents.Moved newcell
             | false, _ -> 
                 raise ChangeEvents.Added newcell
-        
-        // remove all common
-        prev.ExceptWith next
-        
-        for oldcell in prev do
-            raise ChangeEvents.Removed oldcell
 
         state := next
         
     
     let handler (evt : WorksheetEvent) = async {
-        let! token = Async.CancellationToken
         let response =
             match evt with
             | Query ->
                 let op = ref Noop
-                if queue.TryTake(op, 2000, token) then
+                if queue.TryDequeue(op) then
                     !op
                 else
                     Noop
@@ -61,16 +62,19 @@ type Worksheet (name, file) =
             | PostEval (cell, runs) ->
                 raiseWith ChangeEvents.Evaluated cell runs
                 Ack
-
+            | Committed ->
+                raise ChangeEvents.Committed vscell.empty
+                Ack
+        
         return response
     }
     
     let client = Rpc.createHost name handler
-    
+        
+    [<CLIEvent>]
     member _.CellChanged = events.Publish
     member _.Notify (command) =
-        queue.Add command
+        queue.Enqueue command
     interface IDisposable with
         member _.Dispose () = 
-            queue.Dispose()
             (client :> IDisposable).Dispose()

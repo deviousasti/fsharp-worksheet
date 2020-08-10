@@ -18,12 +18,12 @@ module Rpc =
         }
         { name = name; buffer = new RpcBuffer(name, (fun _ data -> onReceive data)); post = handler }
     
-    let createClient name =
+    let createClient name timeout =
         let pickler = FsPickler.CreateBinarySerializer()        
-        let buffer = new RpcBuffer(name)        
+        let buffer = new RpcBuffer(name, bufferNodeCount = 2)        
         let onSend command = async {
                 let data = pickler.Pickle command
-                let! response = buffer.RemoteRequestAsync(data, 1000) |> Async.AwaitTask
+                let! response = buffer.RemoteRequestAsync(data, timeout) |> Async.AwaitTask
                 if not response.Success then
                     return None                
                 else 
