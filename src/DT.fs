@@ -14,6 +14,10 @@ type vscell = { eqHash: eqhash; range: vsrange } with
         match other with
         | :? vscell as cell -> cell.eqHash = this.eqHash
         | _ -> false
+    override this.ToString() = 
+        let from, upto = this.range.From, this.range.To
+        sprintf "%x (%d, %d) - (%d, %d)" this.eqHash from.Line from.Col upto.Line upto.Col
+    static member empty = {eqHash = 0; range = { From = { Line = 0; Col = 0 }; To = { Line = 0; Col = 0 } }}
     interface IEquatable<vscell> with
         member this.Equals(cell) = this.eqHash = cell.eqHash
 
@@ -28,6 +32,7 @@ type WorksheetCommand =
 | ForceEvalRange of vsrange
 | Interrupt
 | Noop
+| Timedout
 | Ack
 | Exit
 
@@ -37,6 +42,7 @@ type WorksheetEvent =
 | ChangesStaged of vscell array
 | PreEval of vscell * string
 | PostEval of vscell * Runs 
+| Committed
 
 
 module API =

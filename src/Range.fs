@@ -19,6 +19,8 @@ module Range =
         original
         #endif    
 
-    let toVsPos (pos: pos) = { Line = pos.Line - 1; Col = pos.Column }
-    let toVsRange (range: range) = { From = toVsPos range.Start; To = toVsPos range.End }
+    let toVsPos (pos: pos) = 
+        { Line = pos.Line - 1; Col = pos.Column }
+    let toVsRange (range: range) = 
+        { From = toVsPos range.Start; To = toVsPos range.End }
 
