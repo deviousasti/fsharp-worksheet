@@ -29,12 +29,19 @@ namespace FsWorksheet
     [ProvideToolWindow(typeof(FsInteractive))]
     public sealed class FsWorksheetPackage : AsyncPackage
     {
+        public static FsWorksheetPackage Instance { get; private set; }
+
         /// <summary>
         /// FsWorksheetPackage GUID string.
         /// </summary>
         public const string PackageGuidString = "61c4f13a-270e-4e34-83b2-11ce7549b1a0";
 
         #region Package Members
+
+        public FsWorksheetPackage()
+        {
+            Instance = this;
+        }
 
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
@@ -48,7 +55,7 @@ namespace FsWorksheet
             // When initialized asynchronously, the current thread may be a background thread at this point.
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            await FsInteractiveCommand.InitializeAsync(this);
+            //await FsInteractiveCommand.InitializeAsync(this);
         }
 
         #endregion

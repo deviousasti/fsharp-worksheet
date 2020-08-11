@@ -22,7 +22,6 @@ module JsonRpc =
                        PipeOptions.Asynchronous
                    )
         do! stream.WaitForConnectionAsync() |> Async.AwaitTask         
-        printfn "Connected"
         let server = Server handle
         use jsonRpc = JsonRpc.Attach(stream, target = server)     
         token.Register (Action jsonRpc.Dispose) |> ignore

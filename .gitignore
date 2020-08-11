@@ -32,3 +32,4 @@ _ReSharper*/
 packages/
 *.json
 *.nupkg
+netcoreapp*/

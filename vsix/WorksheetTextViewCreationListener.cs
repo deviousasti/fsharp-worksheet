@@ -9,11 +9,13 @@ namespace FsWorksheet
     /// that instantiates the adornment on the event of a <see cref="IWpfTextView"/>'s creation
     /// </summary>
     [Export(typeof(IWpfTextViewCreationListener))]
-    [ContentType("F#")]
+    [ContentType("F#"), FileExtension(".fsx")]    
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed class WorksheetBarTextViewCreationListener : IWpfTextViewCreationListener
+    internal sealed class WorksheetTextViewCreationListener : IWpfTextViewCreationListener
     {
-        // Disable "Field is never assigned to..." and "Field is never used" compiler's warnings. Justification: the field is used by MEF.
+
+        // Disable "Field is never assigned to..." and "Field is never used" compiler's warnings. 
+        // Justification: the field is used by MEF.
 #pragma warning disable 649, 169
 
         /// <summary>
@@ -21,9 +23,9 @@ namespace FsWorksheet
         /// after the selection layer in the Z-order
         /// </summary>
         [Export(typeof(AdornmentLayerDefinition))]
-        [Name("WorksheetBar")]
-        [Order(After = PredefinedAdornmentLayers.Caret)]
-        private AdornmentLayerDefinition editorAdornmentLayer;
+        [Name(WorksheetSpace.AdornerName)]
+        [Order(Before = PredefinedAdornmentLayers.CurrentLineHighlighter)]
+        private AdornmentLayerDefinition EditorAdornmentLayer;
 
 #pragma warning restore 649, 169
 
