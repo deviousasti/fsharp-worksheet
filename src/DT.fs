@@ -32,7 +32,6 @@ type WorksheetCommand =
 | ForceEvalRange of vsrange
 | Interrupt
 | Noop
-| Timedout
 | Ack
 | Exit
 

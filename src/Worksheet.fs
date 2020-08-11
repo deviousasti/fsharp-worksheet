@@ -56,21 +56,18 @@ module Worksheet =
     // mutable hashset is 2x faster than immutable set
     // we don't actually use the mutable behavior of hashset
     type Cells = System.Collections.Generic.HashSet<Cell>
-    type EvalCallback = Cell -> unit
-
     type State =
         { source: Source
           cells: Cells
           session: int32
         }
 
-    type StateChangedCallback = (State * State) -> unit
 
     type Events = {
-        onAfterEval: EvalCallback
-        onBeforeEval: EvalCallback 
-        onStaging: StateChangedCallback;
-        onCommit: StateChangedCallback;
+        onAfterEval: Cell -> unit
+        onBeforeEval: Cell -> unit
+        onStaging: State -> unit
+        onCommit: (State * State) -> unit;
     } with  
         static member none = { 
             onAfterEval = ignore
@@ -103,24 +100,27 @@ module Worksheet =
         let! (parseResults, checkResults) = 
             match filename with
             | None -> ctx.Check text
-            | Some filename -> ctx.Check (source, filename)
- 
-        let! symbols = checkResults.GetAllUsesOfAllSymbolsInFile()        
-        let ranges = new RangeTree.RangeTree<_, _>(Range.posOrder)        
-        for usage in symbols do
-            if isValidSymbolUse usage then
-                let loc = usage.RangeAlternate
-                ranges.Add (loc.Start, loc.End, usage)
-
-        //let lookup = Linq.Enumerable.ToLookup(symbols, fun sym -> sym.Symbol)   
+            | Some filename -> ctx.Check text
         
-        return { 
-            parseResults = parseResults 
-            checkResults = checkResults 
-            source = source
-            symbols = ranges
-            allSymbols = symbols
-        }                              
+        if parseResults.ParseHadErrors then
+            return None
+        else
+            let! symbols = checkResults.GetAllUsesOfAllSymbolsInFile()        
+            let ranges = new RangeTree.RangeTree<_, _>(Range.posOrder)        
+            for usage in symbols do
+                if isValidSymbolUse usage then
+                    let loc = usage.RangeAlternate
+                    ranges.Add (loc.Start, loc.End, usage)
+
+            //let lookup = Linq.Enumerable.ToLookup(symbols, fun sym -> sym.Symbol)   
+        
+            return Some <| { 
+                parseResults = parseResults 
+                checkResults = checkResults 
+                source = source
+                symbols = ranges
+                allSymbols = symbols
+            }                              
     }
 
     let createContext () =
@@ -243,8 +243,11 @@ module Worksheet =
     }
 
     let evalState (state: State) (ctx: Context) = async {
+        ctx.events.onStaging state
         let! cells = evalCells state ctx |> Async.Sequential
-        return { state with cells = Cells cells }
+        let next = { state with cells = Cells cells }
+        ctx.events.onCommit (state, next)
+        return next
     }
 
     let forceCells (state: State) condition = 
@@ -266,9 +269,12 @@ module Worksheet =
         forceCells state (fun cell -> Range.intersects cell.range range)
 
     let evalSource source (state: State) (ctx: Context) = async {
-        let! checkedSource = checkSource source None ctx
-        let diff = computeDiff state checkedSource
-        return! evalState diff ctx
+        match! checkSource source None ctx with
+        | None -> 
+            return state
+        | Some checkedSource -> 
+            let diff = computeDiff state checkedSource        
+            return! evalState diff ctx
     }
 
     let evalFile file (state: State) (ctx: Context) = async {
@@ -276,10 +282,6 @@ module Worksheet =
         let! source = File.ReadAllTextAsync (file, token) |> Async.AwaitTask
         return! evalSource source state ctx
     }
-    
-
-        
-
 
 module Print = 
     

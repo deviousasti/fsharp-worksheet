@@ -28,7 +28,7 @@ module FsWatch =
         | Interrupt ->
             ctx.ctx.Interrupt()
             async.Return state
-        | Noop | Exit | Ack ->
+        | _ ->
             async.Return state
         
     [<CompiledName("Watch")>]
