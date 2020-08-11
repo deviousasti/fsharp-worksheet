@@ -3,6 +3,7 @@
 open System
 open System.Collections.Concurrent
 open Remoting
+open System.Threading
 
 type ChangeEvents =
 | Unchanged     = 0 
@@ -69,12 +70,13 @@ type WorksheetModel (name, file, threadModel: Action<Async<unit>>) =
         return response
     }
     
-    let client = Rpc.createHost name handler
-        
+    let cts = new CancellationTokenSource()
+    let server = JsonRpc.createServer name handler
+            
     [<CLIEvent>]
     member _.CellChanged = events.Publish
+    member _.Start() = Async.Start (server, cts.Token)
     member _.Notify (command) =
         queue.Enqueue command
     interface IDisposable with
-        member _.Dispose () = 
-            (client :> IDisposable).Dispose()
+        member _.Dispose () = cts.Cancel()

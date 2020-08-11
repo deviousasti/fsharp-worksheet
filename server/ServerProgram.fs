@@ -10,16 +10,10 @@ open System.Threading
 [<EntryPoint>]
 let main argv =
     let name, file = argv.[0], argv.[1]
-    use client = Rpc.createClient name 200
+    use client = JsonRpc.createClient name
     use subject = Subject.broadcast
 
-    let sendReceive message = 
-        lock client <| fun () -> 
-        Async.RunSynchronously <| async { 
-        return! client.post message 
-    }
-
-    let send = sendReceive >> ignore
+    let send = client.send >> ignore
 
     let config = { 
         filename = file
@@ -42,20 +36,25 @@ let main argv =
     use watch = FsWatch.watch (config, subject)
     printfn "Server started for %s" file
 
-    while true do
-        let reply = sendReceive Query            
-        let command = defaultArg reply Timedout
-        
+    let rec loop () = async {
+        let! command = client.sendReceive Query    
         match command with
-        | Timedout ->
-            ()
         | Noop | Ack -> 
-            Thread.Sleep 100
-            ()
+            do! Async.Sleep 250
+            return! loop ()
         | Exit -> 
             exit 0
         | command ->
-            printfn "Recv"
-            subject.OnNext command    
-
-    0 // return an integer exit code
+            printfn "Process"
+            subject.OnNext command  
+            return! loop ()
+    }    
+    
+    try 
+        loop () |> Async.RunSynchronously
+        0 // return proper exit
+    with
+    | _ -> 
+        printfn "Disconnected"
+        -1 // disconnected
+    

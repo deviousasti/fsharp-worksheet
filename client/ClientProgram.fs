@@ -12,6 +12,7 @@ let main argv =
             printfn "%A %s" evt (string cell)
         )           
     
+    worksheet.Start()
     while true do
         printfn "Sending..."
         worksheet.Notify(Compute (File.ReadAllText(file)))
