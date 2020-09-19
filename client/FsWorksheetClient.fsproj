@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StreamJsonRpc" Version="2.5.44" />
+    <PackageReference Include="StreamJsonRpc" Version="2.5.46" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +22,10 @@
     <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Presentation" />
     <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.7.2" />
   </ItemGroup>
 
 </Project>
