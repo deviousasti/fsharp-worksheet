@@ -30,6 +30,6 @@ _ReSharper*/
 .vs/
 #Nuget packages folder
 packages/
-*.json
 *.nupkg
 netcoreapp*/
+launchSettings.json
