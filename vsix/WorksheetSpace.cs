@@ -17,6 +17,7 @@ using VsBrushes = Microsoft.VisualStudio.Shell.VsBrushes;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Windows.Documents;
+using System.IO;
 
 namespace FsWorksheet
 {
@@ -83,11 +84,11 @@ namespace FsWorksheet
         }
     }
 
-    public sealed class WorksheetSpace
+    public sealed class WorksheetSpace : IDisposable
     {
         public const string AdornerName = "FsWorksheet";
 
-        private readonly IWpfTextView view;
+        public IWpfTextView TextView { get; }
 
         private readonly IAdornmentLayer adornmentLayer;
         private readonly ITextDocument document;
@@ -108,29 +109,50 @@ namespace FsWorksheet
         /// Creates a square image and attaches an event handler to the layout changed event that
         /// adds the the square in the upper right-hand corner of the TextView via the adornment layer
         /// </summary>
-        /// <param name="view">The <see cref="IWpfTextView"/> upon which the adornment will be drawn</param>
-        public WorksheetSpace(IWpfTextView view)
+        /// <param name="textView">The <see cref="IWpfTextView"/> upon which the adornment will be drawn</param>
+        public WorksheetSpace(IWpfTextView textView)
         {
-            this.adornmentLayer = view.GetAdornmentLayer(AdornerName);
-            this.view = view;
-            this.document = view.TextBuffer.Properties.GetProperty<ITextDocument>(typeof(ITextDocument));
+            if (textView.IsEmbeddedTextView())
+                return;
 
-            this.view.LayoutChanged += OnViewLayoutChanged;
-            this.view.ViewportWidthChanged += OnViewportResized;
+            var document = textView.TextBuffer.Properties.GetProperty<ITextDocument>(typeof(ITextDocument));
+            if (Path.GetExtension(document.FilePath) != ".fsx")
+                return;
+
+            this.TextView = textView;
+            this.document = document;
+            this.adornmentLayer = textView.GetAdornmentLayer(AdornerName);
+
+            this.TextView.LayoutChanged += OnViewLayoutChanged;
+            this.TextView.ViewportWidthChanged += OnViewportResized;
             this.document.FileActionOccurred += OnFileAction;
+            this.TextView.TextBuffer.ChangedLowPriority += OnBufferChanged;
+            this.TextView.Closed += OnClosed;
 
             StartServer();
+                
+            this.IsValid = true;
+        }
+
+        private void OnClosed(object sender, EventArgs e)
+        {
+            Dispose();
+        }
+
+        private void OnBufferChanged(object sender, TextContentChangedEventArgs e)
+        {
+            
         }
 
         private void OnViewportResized(object sender, EventArgs e)
         {
             this.adornmentLayer.RemoveAdornment(ProgressBar);
-            ProgressBar.Width = view.ViewportWidth;
+            ProgressBar.Width = TextView.ViewportWidth;
             this.adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, ProgressBar, null);
 
             foreach (var cells in Cells.Values.ToArray())
             {
-                cells.TranslateTo(view);
+                cells.TranslateTo(TextView);
             }
         }
 
@@ -140,7 +162,7 @@ namespace FsWorksheet
             if (cell == null || !Cells.TryGetValue(cell, out var existing))
                 return;
 
-            if (existing.Top > view.ViewportTop && existing.Top < view.ViewportBottom)
+            if (existing.Top > TextView.ViewportTop && existing.Top < TextView.ViewportBottom)
             {
                 //AddCell(cell, existing);
             }
@@ -189,10 +211,8 @@ namespace FsWorksheet
             if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
             {
                 Compute();
-
             }
         }
-
 
         private string GetText()
         {
@@ -288,7 +308,7 @@ namespace FsWorksheet
             {
                 FontFamily = Font,
                 TextWrapping = TextWrapping.Wrap,
-                LineHeight = view.LineHeight,
+                LineHeight = TextView.LineHeight,
             };
 
             foreach (var (color, text) in runs)
@@ -320,7 +340,7 @@ namespace FsWorksheet
 
         private bool AddCell(vscell key, CellView existing)
         {
-            var span = existing.TranslateTo(view);
+            var span = existing.TranslateTo(TextView);
             var added = adornmentLayer.AddAdornment(AdornmentPositioningBehavior.TextRelative, span, key, existing.Element, OnRemoved);
             return true;
         }
@@ -335,9 +355,12 @@ namespace FsWorksheet
             cell.Element.BorderBrush = brush;
         }
 
-        private ITextSnapshot CurrentSnapshot => this.view.TextBuffer.CurrentSnapshot;
+        private ITextSnapshot CurrentSnapshot => this.TextView.TextBuffer.CurrentSnapshot;
 
         public WorksheetServer Server { get; private set; }
+        public bool IsValid { get; }
+        
+        public event EventHandler Disposed;
 
         public void ShowProgress()
         {
@@ -371,5 +394,20 @@ namespace FsWorksheet
             return new SolidColorBrush(Color.FromArgb(color.A, color.R, color.G, color.B));
         }
 
+        public void Dispose()
+        {
+            if (!IsValid)
+                return;
+
+
+            this.TextView.LayoutChanged -= OnViewLayoutChanged;
+            this.TextView.ViewportWidthChanged -= OnViewportResized;
+            this.document.FileActionOccurred -= OnFileAction;
+            this.TextView.TextBuffer.ChangedLowPriority -= OnBufferChanged;
+            this.TextView.Closed -= OnClosed;
+
+            Server.Dispose();
+            this.Disposed?.Invoke(this, EventArgs.Empty);
+        }
     }
 }
