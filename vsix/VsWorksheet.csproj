@@ -46,13 +46,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FsInteractive.cs" />
-    <Compile Include="FsInteractiveCommand.cs" />
-    <Compile Include="FsInteractiveControl.xaml.cs">
-      <DependentUpon>FsInteractiveControl.xaml</DependentUpon>
-    </Compile>
     <Compile Include="FsWorksheetPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WorksheetHandler.cs" />
     <Compile Include="WorksheetServer.cs" />
     <Compile Include="WorksheetSpace.cs" />
     <Compile Include="WorksheetTextViewCreationListener.cs" />
@@ -94,12 +90,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="FsInteractiveControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Content Include="server\netcoreapp3.0\FSharp.Compiler.Service.dll">
@@ -190,9 +180,6 @@
     <Content Include="server\netcoreapp3.0\System.Windows.Extensions.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <VSCTCompile Include="FsWorksheetPackage.vsct">
-      <ResourceName>Menus.ctmenu</ResourceName>
-    </VSCTCompile>
     <Content Include="Resources\FsInteractiveCommand.png" />
   </ItemGroup>
   <ItemGroup>
