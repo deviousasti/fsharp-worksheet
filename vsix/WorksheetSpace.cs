@@ -59,7 +59,7 @@ namespace FsWorksheet
             var start = anchor.Start.Position;
             var to = vsrange.To;
             var end = textSnapshot.GetLineFromLineNumber(to.Line).Start.Position + to.Col;
-            return textSnapshot.CreateTrackingSpan(start, anchor.Length, SpanTrackingMode.EdgeExclusive);
+            return textSnapshot.CreateTrackingSpan(start, end - start, SpanTrackingMode.EdgeInclusive);
         }
 
         public void MoveTo(vsrange range, ITextSnapshot currentSnapshot)
@@ -130,7 +130,7 @@ namespace FsWorksheet
             this.TextView.Closed += OnClosed;
 
             StartServer();
-                
+
             this.IsValid = true;
         }
 
@@ -141,7 +141,12 @@ namespace FsWorksheet
 
         private void OnBufferChanged(object sender, TextContentChangedEventArgs e)
         {
-            
+            foreach (var change in e.Changes)
+                foreach (var cell in Cells)
+                {
+                    //change.NewSpan.IntersectsWith(cell.Value.Span);
+                }
+
         }
 
         private void OnViewportResized(object sender, EventArgs e)
@@ -164,7 +169,7 @@ namespace FsWorksheet
 
             if (existing.Top > TextView.ViewportTop && existing.Top < TextView.ViewportBottom)
             {
-                //AddCell(cell, existing);
+                AddCell(cell, existing);
             }
         }
 
@@ -292,7 +297,7 @@ namespace FsWorksheet
 
         private void ReAddAll()
         {
-            
+
             foreach (var pair in Cells)
             {
                 RemoveCell(pair.Value);
@@ -359,7 +364,7 @@ namespace FsWorksheet
 
         public WorksheetServer Server { get; private set; }
         public bool IsValid { get; }
-        
+
         public event EventHandler Disposed;
 
         public void ShowProgress()

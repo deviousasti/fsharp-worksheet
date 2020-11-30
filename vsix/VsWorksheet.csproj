@@ -48,16 +48,21 @@
   <ItemGroup>
     <Compile Include="FsWorksheetPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Commands\ReEvaluateCommand.cs" />
     <Compile Include="WorksheetHandler.cs" />
     <Compile Include="WorksheetServer.cs" />
     <Compile Include="WorksheetSpace.cs" />
     <Compile Include="WorksheetTextViewCreationListener.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="server\netcoreapp3.0\FsWorksheetServer.runtimeconfig.dev.json">
+    <VSCTCompile Include="FsWorksheetPackage.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+    </VSCTCompile>
+    <Content Include="Resources\Commands.png" />
+    <Content Include="Server\netcoreapp3.0\FsWorksheetServer.runtimeconfig.dev.json">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\FsWorksheetServer.runtimeconfig.json">
+    <Content Include="Server\netcoreapp3.0\FsWorksheetServer.runtimeconfig.json">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <None Include="source.extension.vsixmanifest">
@@ -92,95 +97,92 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="server\netcoreapp3.0\FSharp.Compiler.Service.dll">
+    <Content Include="Server\netcoreapp3.0\FSharp.Compiler.Service.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\FSharp.Control.Reactive.dll">
+    <Content Include="Server\netcoreapp3.0\FSharp.Control.Reactive.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\FSharp.Core.dll">
+    <Content Include="Server\netcoreapp3.0\FSharp.Core.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\fsw.dll">
+    <Content Include="Server\netcoreapp3.0\fsw.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\fsw.exe">
+    <Content Include="Server\netcoreapp3.0\fsw.exe">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\FsWorksheetServer.dll">
+    <Content Include="Server\netcoreapp3.0\FsWorksheetServer.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\FsWorksheetServer.exe">
+    <Content Include="Server\netcoreapp3.0\FsWorksheetServer.exe">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\Microsoft.Bcl.AsyncInterfaces.dll">
+    <Content Include="Server\netcoreapp3.0\Microsoft.Bcl.AsyncInterfaces.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\Microsoft.Build.Framework.dll">
+    <Content Include="Server\netcoreapp3.0\Microsoft.Build.Framework.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\Microsoft.Build.Tasks.Core.dll">
+    <Content Include="Server\netcoreapp3.0\Microsoft.Build.Tasks.Core.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\Microsoft.Build.Utilities.Core.dll">
+    <Content Include="Server\netcoreapp3.0\Microsoft.Build.Utilities.Core.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\Microsoft.VisualStudio.Threading.dll">
+    <Content Include="Server\netcoreapp3.0\Microsoft.VisualStudio.Threading.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\Microsoft.VisualStudio.Validation.dll">
+    <Content Include="Server\netcoreapp3.0\Microsoft.VisualStudio.Validation.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll">
+    <Content Include="Server\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\Nerdbank.Streams.dll">
+    <Content Include="Server\netcoreapp3.0\Nerdbank.Streams.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\Newtonsoft.Json.dll">
+    <Content Include="Server\netcoreapp3.0\Newtonsoft.Json.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\RangeTree.dll">
+    <Content Include="Server\netcoreapp3.0\RangeTree.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\runtimes\unix\lib\netcoreapp2.1\System.Security.Principal.Windows.dll" />
-    <Content Include="server\netcoreapp3.0\runtimes\unix\lib\netcoreapp3.0\System.Drawing.Common.dll" />
-    <Content Include="server\netcoreapp3.0\runtimes\win\lib\netcoreapp2.0\System.Security.AccessControl.dll" />
-    <Content Include="server\netcoreapp3.0\runtimes\win\lib\netcoreapp2.1\System.Security.Principal.Windows.dll" />
-    <Content Include="server\netcoreapp3.0\runtimes\win\lib\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll" />
-    <Content Include="server\netcoreapp3.0\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll" />
-    <Content Include="server\netcoreapp3.0\runtimes\win\lib\netcoreapp3.0\System.Windows.Extensions.dll" />
-    <Content Include="server\netcoreapp3.0\StreamJsonRpc.dll">
+    <Content Include="Server\netcoreapp3.0\runtimes\win\lib\netcoreapp2.0\System.Security.AccessControl.dll" />
+    <Content Include="Server\netcoreapp3.0\runtimes\win\lib\netcoreapp2.1\System.Security.Principal.Windows.dll" />
+    <Content Include="Server\netcoreapp3.0\runtimes\win\lib\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll" />
+    <Content Include="Server\netcoreapp3.0\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll" />
+    <Content Include="Server\netcoreapp3.0\runtimes\win\lib\netcoreapp3.0\System.Windows.Extensions.dll" />
+    <Content Include="Server\netcoreapp3.0\StreamJsonRpc.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\System.CodeDom.dll">
+    <Content Include="Server\netcoreapp3.0\System.CodeDom.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\System.Drawing.Common.dll">
+    <Content Include="Server\netcoreapp3.0\System.Drawing.Common.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\System.IO.Pipelines.dll">
+    <Content Include="Server\netcoreapp3.0\System.IO.Pipelines.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\System.Reactive.dll">
+    <Content Include="Server\netcoreapp3.0\System.Reactive.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\System.Resources.Extensions.dll">
+    <Content Include="Server\netcoreapp3.0\System.Resources.Extensions.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\System.Security.AccessControl.dll">
+    <Content Include="Server\netcoreapp3.0\System.Security.AccessControl.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\System.Security.Permissions.dll">
+    <Content Include="Server\netcoreapp3.0\System.Security.Permissions.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\System.Security.Principal.Windows.dll">
+    <Content Include="Server\netcoreapp3.0\System.Security.Principal.Windows.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="server\netcoreapp3.0\System.Windows.Extensions.dll">
+    <Content Include="Server\netcoreapp3.0\System.Windows.Extensions.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Resources\FsInteractiveCommand.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\client\FsWorksheetClient.fsproj">
