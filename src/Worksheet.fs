@@ -10,8 +10,7 @@ open FSharp.Control.Reactive
 
 open FSharp.Compiler.Range
 open FsWorksheet.Core
-open RangeTree
-
+open IntervalTree
 
 
 module Worksheet = 
@@ -80,7 +79,7 @@ module Worksheet =
         interface IDisposable with
             member this.Dispose() = Disposable.dispose this.ctx
 
-    type SymbolRangeTree = IRangeTree<pos, FSharpSymbolUse>
+    type SymbolRangeTree = IIntervalTree<pos, FSharpSymbolUse>
 
     type CheckedSource = { 
         parseResults : FSharpParseFileResults 
@@ -106,7 +105,7 @@ module Worksheet =
             return None
         else
             let! symbols = checkResults.GetAllUsesOfAllSymbolsInFile()        
-            let ranges = new RangeTree.RangeTree<_, _>(Range.posOrder)        
+            let ranges = new IntervalTree.IntervalTree<_, _>(Range.posOrder)        
             for usage in symbols do
                 if isValidSymbolUse usage then
                     let loc = usage.RangeAlternate
@@ -190,7 +189,7 @@ module Worksheet =
         // faster than computing the dependents of each symbols
         // and doing a distinctBy
         let cells = seq {
-            let depTree = new RangeTree<_, _>(Range.posOrder)
+            let depTree = new IntervalTree<_, _>(Range.posOrder)
 
             for cell in changes do                
                 let symbols = cur.symbols.Query(cell.range.Start, cell.range.End)
@@ -243,10 +242,10 @@ module Worksheet =
     }
 
     let evalState (state: State) (ctx: Context) = async {
-        ctx.events.onStaging state
+        do ctx.events.onStaging state
         let! cells = evalCells state ctx |> Async.Sequential
         let next = { state with cells = Cells cells }
-        ctx.events.onCommit (state, next)
+        do ctx.events.onCommit (state, next)
         return next
     }
 

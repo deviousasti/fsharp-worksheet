@@ -4,10 +4,11 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <AssemblyName>fsw</AssemblyName>
+	<PackageId>FSharp.Worksheet</PackageId>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <VersionPrefix>0.1.0</VersionPrefix>
     <Authors>asti</Authors>
-    <Product>fsw</Product>
+    <Product>FSharpWorksheet</Product>
     <Description>F# worksheet declarations are divided into 'cells'. For any arbitrary set of changes, changes to cells are computed, and the cells' dependents, the dependent's dependents etc., are computed. Only the marked cells are evaluated.</Description>
     <PackageLicenseUrl>https://github.com/dotnet/core/blob/master/LICENSE.TXT</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/deviousasti/fsharp-worksheet</PackageProjectUrl>
@@ -35,13 +36,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FSharp.Compiler.Service" Version="37.0.0" />
+    <PackageReference Include="FSharp.Compiler.Service" Version="38.0.0" />
     <PackageReference Include="FSharp.Control.Reactive" Version="4.4.2" />
-    <PackageReference Include="RangeTree" Version="2.0.1" />
+    <PackageReference Include="RangeTree" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.7.2" />
+    <PackageReference Update="FSharp.Core" Version="5.0.0" />
   </ItemGroup>
 
 </Project>

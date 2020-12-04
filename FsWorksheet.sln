@@ -8,8 +8,11 @@ EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsWorksheetServer", "server\FsWorksheetServer.fsproj", "{21A60C50-0FDE-47A2-85D1-3BB660767C0E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VsWorksheet", "vsix\VsWorksheet.csproj", "{5404E12B-CAED-42FC-AD3F-F96F278BA3DD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{21A60C50-0FDE-47A2-85D1-3BB660767C0E} = {21A60C50-0FDE-47A2-85D1-3BB660767C0E}
+	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FsWorksheetClient", "client\FsWorksheetClient.fsproj", "{FFCAC4F4-47C8-4830-9782-EDA6B7E8F7E2}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsWorksheetClient", "client\FsWorksheetClient.fsproj", "{FFCAC4F4-47C8-4830-9782-EDA6B7E8F7E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

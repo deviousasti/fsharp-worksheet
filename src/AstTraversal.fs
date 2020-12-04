@@ -57,7 +57,6 @@ module AstTraversal =
     
     let astToText (source: FSharp.Compiler.Text.ISourceText) (decl: SynModuleDecl) (scope: LongIdent) =
         match decl with
-        | SynModuleDecl.Open (ident, range) -> sprintf "open %s" (rangeToText source range)
         | SynModuleDecl.HashDirective(ParsedHashDirective("pragma", ["worksheet"], _), _) ->      
             //ignore our own pragma directive
             ""
@@ -65,12 +64,17 @@ module AstTraversal =
             // retarget script path
             let root = Path.GetDirectoryName range.FileName
             let fullPath = if Path.IsPathRooted filename then filename else Path.Combine (root, filename)
-            sprintf "#load \"%s\"" fullPath
-        | decl ->             
-            scope 
+            $"#load \"{fullPath}\""
+        | SynModuleDecl.DoExpr(_, _, range) ->
+            // scoped do expressions are invalid
+            rangeToText source range
+        | decl ->
+            (scope 
             |> Seq.mapi(fun i id -> sprintf "%smodule %s = \n" (String.replicate i "    ") id.idText) 
-            |> Seq.append (seq { rangeToText source decl.Range })
-            |> String.concat ""
+            |> String.concat String.Empty)
+            +
+            rangeToText source decl.Range
+
                 
             
         
