@@ -1,1 +1,1 @@
-dotnet tool uninstall fsw -g
+dotnet tool uninstall FSharp.Worksheet -g
