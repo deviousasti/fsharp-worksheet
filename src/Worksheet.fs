@@ -19,7 +19,7 @@ module Worksheet =
     let createSource text = Text.SourceText.ofString text
 
     type Runs = Run[]
-    type RunResult = NonEval | Evaled of Runs | Faulted of Runs | Unevaluated    
+    type RunResult = NonEval | Evaled of Runs | Faulted of Runs * Runs | Unevaluated    
     
     [<RequireQualifiedAccess>]
     type 'a Dependencies = NonCalculated | Nothing | DependsOn of 'a list
@@ -39,9 +39,9 @@ module Worksheet =
         member this.ToSource() = this.ToSource(this.source)           
         member this.runs = 
             match this.result with
-            | Evaled runs 
-            | Faulted runs -> runs
-            | _ -> [||]
+            | Evaled runs -> runs :> Run seq 
+            | Faulted (runs, errs) -> Seq.append runs errs
+            | _ -> Seq.empty
         override this.GetHashCode() = this.eqHash
         override this.Equals(other) = 
             match other with
@@ -228,9 +228,8 @@ module Worksheet =
 
                     let runResult = 
                         match result with
-                        | Ok (runs, _value) -> Evaled runs
-                        | Error (runs, [||]) -> Faulted runs
-                        | Error (_, errs) -> Faulted errs
+                        | Ok (runs, _) -> Evaled runs
+                        | Error err -> Faulted err
 
                     let cell = { cell with result = runResult } 
 

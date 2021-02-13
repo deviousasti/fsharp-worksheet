@@ -66,11 +66,17 @@ type EvalContext (?config : FsiEvaluationSessionHostConfig) =
                 Console.SetError errStream
 
                 let value, errInfo = fsiSession.EvalInteractionNonThrowing(text, token)
+                let runs = Array.append (outStream.GetRuns()) (errStream.GetRuns())
                 let result = 
                     match value, errInfo with 
-                    | Choice1Of2 value, _ -> Ok (outStream.GetRuns(), value)
-                    | Choice2Of2 exn, [||] -> Error (errStream.GetRuns(), [| ConsoleColor.Red, sanitise exn |])
-                    | Choice2Of2 exn, err -> Error (errStream.GetRuns(), (err |> Array.map(fun e -> ConsoleColor.Red, sanitise e.Message )))
+                    | Choice1Of2 value, _ -> Ok (runs, value)
+                    | Choice2Of2 exn, err -> 
+                        let errors = 
+                            err 
+                            |> Seq.map(fun e -> Run(ConsoleColor.Red, sanitise e.Message))
+                            |> Seq.append (Seq.singleton (ConsoleColor.Red, sanitise exn))
+                            |> Array.ofSeq
+                        Error (runs, errors)
 
                 return result
             finally
