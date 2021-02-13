@@ -5,6 +5,7 @@ open System.Collections.Concurrent
 open Remoting
 open System.Threading
 
+[<RequireQualifiedAccess>]
 type ChangeEvents =
 | Unchanged     = 0 
 | Added         = 1

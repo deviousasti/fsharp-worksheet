@@ -64,7 +64,7 @@ module AstTraversal =
             // retarget script path
             let root = Path.GetDirectoryName range.FileName
             let fullPath = if Path.IsPathRooted filename then filename else Path.Combine (root, filename)
-            $"#load \"{fullPath}\""
+            sprintf "#load \"%s\"" fullPath
         | SynModuleDecl.DoExpr(_, _, range) ->
             // scoped do expressions are invalid
             rangeToText source range
