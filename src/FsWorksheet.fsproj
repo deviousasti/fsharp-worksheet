@@ -37,7 +37,14 @@
   <ItemGroup>
     <PackageReference Include="FSharp.Compiler.Service" Version="38.0.0" />
     <PackageReference Include="FSharp.Control.Reactive" Version="4.4.2" />
+    <PackageReference Include="Ben.Demystifier" Version="0.3.0" />
     <PackageReference Include="RangeTree" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="FSharp.DependencyManager">
+      <HintPath>..\deps\FSharp.DependencyManager.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

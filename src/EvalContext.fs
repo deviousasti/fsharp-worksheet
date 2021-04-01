@@ -2,6 +2,7 @@
 
 open System
 open System.IO
+open System.Diagnostics
 open FSharp.Compiler
 open FSharp.Compiler.Interactive.Shell
 open Microsoft.FSharp.Control
@@ -9,6 +10,7 @@ open Microsoft.FSharp.Control
 open FSharp.Compiler.Range
 open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Text
+
 
 type range = Range.range
 
@@ -25,7 +27,7 @@ type EvalContext (?config : FsiEvaluationSessionHostConfig) =
 
     
     let argv = [| "C:\\fsi.exe" |]
-    let allArgs = Array.append argv [|"--noninteractive"; "--nologo"; "--fsi-server:fswatch" |]       
+    let allArgs = Array.append argv [|"--noninteractive"; "--nologo"; "--fsi-server:fswatch"; "--langversion:preview" |]       
 
     let fsiSession = FsiEvaluationSession.Create(fsiConfig, allArgs, inStream, outStream, errStream)
 
@@ -51,7 +53,10 @@ type EvalContext (?config : FsiEvaluationSessionHostConfig) =
     }        
 
     let sanitise obj =
-        System.Text.RegularExpressions.Regex.Replace(obj.ToString(), @"FSI_\d\d\d\d\.?", "") + outStream.NewLine
+        System.Text.RegularExpressions.Regex
+            .Replace(obj.ToString(), @"FSI_\d\d\d\d\.?", "")
+            .Replace(@"F:/workspace/_work/1/s/src/fsharp/", "")
+        + outStream.NewLine
 
     //fsiSession.InteractiveChecker.com
     let evalInteraction text = 
@@ -74,7 +79,7 @@ type EvalContext (?config : FsiEvaluationSessionHostConfig) =
                         let errors = 
                             err 
                             |> Seq.map(fun e -> Run(ConsoleColor.Red, sanitise e.Message))
-                            |> Seq.append (Seq.singleton (ConsoleColor.Red, sanitise exn))
+                            |> Seq.append (Seq.singleton (ConsoleColor.Red, sanitise (exn.ToStringDemystified())))
                             |> Array.ofSeq
                         Error (runs, errors)
 
