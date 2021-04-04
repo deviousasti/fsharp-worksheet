@@ -21,7 +21,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <Compile Include="DT.fs" />
     <Compile Include="Extension.fs" />
@@ -36,8 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="5.0.0" />
     <PackageReference Include="FSharp.Compiler.Service" Version="38.0.0" />
-    <PackageReference Include="FSharp.Control.Reactive" Version="4.4.2" />
+    <PackageReference Include="FSharp.Control.Reactive" Version="5.0.2" />
     <PackageReference Include="Ben.Demystifier" Version="0.3.0" />
     <PackageReference Include="RangeTree" Version="3.0.0" />
   </ItemGroup>
@@ -49,7 +50,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="5.0.0" />
   </ItemGroup>
 
 </Project>
