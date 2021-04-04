@@ -6,7 +6,7 @@
     <AssemblyName>fsw</AssemblyName>
 	<PackageId>FSharp.Worksheet</PackageId>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <VersionPrefix>0.2.0</VersionPrefix>
+    <VersionPrefix>0.3.0</VersionPrefix>
     <Authors>asti</Authors>
     <Product>FSharpWorksheet</Product>
     <Description>F# worksheet declarations are divided into 'cells'. For any arbitrary set of changes, changes to cells are computed, and the cells' dependents, the dependent's dependents etc., are computed. Only the marked cells are evaluated.</Description>
