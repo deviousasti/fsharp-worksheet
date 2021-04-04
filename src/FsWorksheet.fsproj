@@ -28,6 +28,7 @@
     <Compile Include="Range.fs" />
     <Compile Include="AstTraversal.fs" />
     <Compile Include="Writer.fs" />
+    <Compile Include="SessionConfig.fs" />
     <Compile Include="EvalContext.fs" />
     <Compile Include="Worksheet.fs" />
     <Compile Include="Watch.fs" />

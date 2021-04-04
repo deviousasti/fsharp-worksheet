@@ -14,7 +14,7 @@ open FSharp.Compiler.Text
 
 type range = Range.range
 
-type EvalContext (?config : FsiEvaluationSessionHostConfig) =                    
+type EvalContext () =                    
 
     let inStream = new StringReader("")
     let outStream = new RunWriter() // Console.Out  // new StringWriter(sbOut)
@@ -23,13 +23,14 @@ type EvalContext (?config : FsiEvaluationSessionHostConfig) =
     let stdOut = Console.Out
     let stdErr = Console.Error
 
-    let fsiConfig = defaultArg config (FsiEvaluationSession.GetDefaultConfiguration())   
-
+    let interactive = InteractiveSession()
+    let fsiConfig = WorksheetSessionConfig(interactive)
     
     let argv = [| "C:\\fsi.exe" |]
     let allArgs = Array.append argv [|"--noninteractive"; "--nologo"; "--fsi-server:fswatch"; "--langversion:preview" |]       
 
     let fsiSession = FsiEvaluationSession.Create(fsiConfig, allArgs, inStream, outStream, errStream)
+    do fsiSession.AddBoundValue("fsi", interactive)
 
     let checkAsNewProject sourceFile (source : ISourceText) =         
         async {                 

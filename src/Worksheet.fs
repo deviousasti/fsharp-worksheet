@@ -122,8 +122,7 @@ module Worksheet =
             }                              
     }
 
-    let createContext () =
-        new FsWorksheet.Core.EvalContext ()
+    let createContext () = new FsWorksheet.Core.EvalContext ()
 
     let initState = { source = createSource ""; cells = new Cells(); session = 0; }
     
